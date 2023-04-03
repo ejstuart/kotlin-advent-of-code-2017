@@ -19,7 +19,7 @@ fun main() {
     fun part2(input: List<String>): Int {
 
         val captcha: String = input[0]
-        var sum: Int = 0
+        var sum = 0
         val next: Int = captcha.length/2
 
         for ((counter, c) in captcha.withIndex()) {
