@@ -11,13 +11,6 @@ fun main() {
         return filteredInput.size
     }
 
-    fun areAnagrams(a: String, b:String): Boolean {
-        val sortedA = a.toCharArray().sorted().toString()
-        val sortedB = b.toCharArray().sorted().toString()
-
-        return sortedA == sortedB
-    }
-
     /**
      * Alphabetise each word before adding converting to set to check for anagram
      */

@@ -1,37 +1,45 @@
 fun main() {
+
+    /**
+     * Brute force solution
+     */
     fun part1(input: List<String>): Int {
+        val maze = input.map { it.toInt() }.toMutableList()
+        var index = 0
+        var steps = 0
 
-        val filteredInput = input.filter {
-            val phrase = it.split(" ")
-            val wordSet = phrase.toSet()
-
-            phrase.size == wordSet.size
+        while (index >= 0 && index < maze.size) {
+            val next = maze[index]
+            maze[index]++
+            index += next
+            steps++
         }
 
-        return filteredInput.size
-    }
-
-    fun areAnagrams(a: String, b:String): Boolean {
-        val sortedA = a.toCharArray().sorted().toString()
-        val sortedB = b.toCharArray().sorted().toString()
-
-        return sortedA == sortedB
+        return steps
     }
 
     /**
-     * Alphabetise each word before adding converting to set to check for anagram
+     * Also a brute force solution
      */
     fun part2(input: List<String>): Int {
+        val maze = input.map { it.toInt() }.toMutableList()
+        var index = 0
+        var steps = 0
 
-        val filteredInput = input.filter {
-            val phraseList = it.split(" ").map { word ->
-                word.toCharArray().sorted().toString()
+        while (index >= 0 && index < maze.size) {
+            val next = maze[index]
+
+            if (next > 2) {
+                maze[index]--
+            } else {
+                maze[index]++
             }
 
-            phraseList.size == phraseList.toSet().size
+            index += next
+            steps++
         }
 
-        return filteredInput.size
+        return steps
     }
 
 
@@ -41,7 +49,7 @@ fun main() {
 //    val testInput = readInput("Day01_test")
 //    check(part1(testInput) == 1)
 
-    val input = readInput("Day04_test")
+    val input = readInput("Day05_test")
     part1(input).println()
     part2(input).println()
 
