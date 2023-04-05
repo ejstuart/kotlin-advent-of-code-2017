@@ -1,78 +1,65 @@
 fun main() {
 
-
-    class CustomIterator(mazeList: MutableList<Int>): Iterator<Int> {
+    class CustomIterator(mazeList: MutableList<Int>, val incrementFunction: (MutableList<Int>, Int) -> Unit) :
+        Iterator<Int> {
         val state = mazeList
         var i = 0
-        var steps = 0
 
         override fun next(): Int {
-            steps++
-            val temp = state[i]
-            state[i] += 1
-            i += temp
+            i += state[i]
             return i
         }
 
         override fun hasNext(): Boolean {
-            return i>=0 && i<state.size
+            return i >= 0 && i < state.size
+        }
+
+        fun updateState(temp: Int): Unit {
+            incrementFunction(state, temp)
         }
     }
 
 
     fun part1(input: List<String>): Int {
-        val maze = input.map { it.toInt() }.toMutableList()
-        val iterator: CustomIterator = CustomIterator(maze)
+        fun incrementMaze(state: MutableList<Int>, i: Int): Unit {
+            state[i]++
+        }
 
-
-        iterator.forEach { _ -> }
-
-        return iterator.steps
-    }
-
-
-    class SecondCustomIterator(mazeList: MutableList<Int>): Iterator<Int> {
-        val state = mazeList
-        var i = 0
         var steps = 0
-
-        override fun next(): Int {
-            steps++
-            val temp = state[i]
-
-            if (temp > 2) {
-                state[i] -= 1
-            } else {
-                state[i] += 1
-            }
-            i += temp
-            return i
-        }
-
-        override fun hasNext(): Boolean {
-            return i>=0 && i<state.size
-        }
-    }
-
-    /**
-     * Also a brute force solution
-     */
-    fun part2(input: List<String>): Int {
         val maze = input.map { it.toInt() }.toMutableList()
-        val iterator = SecondCustomIterator(maze)
+        val iterator = CustomIterator(maze, incrementFunction = ::incrementMaze)
 
-
-        iterator.forEach { _ -> }
-
-        return iterator.steps
+        while (iterator.hasNext()) {
+            val temp = iterator.i
+            iterator.next()
+            iterator.updateState(temp)
+            steps++
+        }
+        return steps
     }
 
+    fun part2(input: List<String>): Int {
+        fun incrementMaze(state: MutableList<Int>, i: Int): Unit {
+            if (state[i] > 2) {
+                state[i]--
+            } else {
+                state[i]++
+            }
+        }
 
+        var steps = 0
+        val maze = input.map { it.toInt() }.toMutableList()
+        val iterator = CustomIterator(maze, incrementFunction = ::incrementMaze)
 
+        while (iterator.hasNext()) {
+            val temp = iterator.i
+            iterator.next()
+            iterator.updateState(temp)
+            steps++
+        }
 
-//     test if implementation meets criteria from the description, like:
-//    val testInput = readInput("Day01_test")
-//    check(part1(testInput) == 1)
+        return steps
+    }
 
     val input = readInput("Day05_test")
     part1(input).println()
