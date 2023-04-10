@@ -1,63 +1,78 @@
 
 fun main() {
 
-    fun redistribute(banks: MutableList<Int>) {
-        var maxElement = banks.max()
-        var index = banks.indexOf(maxElement)
-        banks[index] = 0
+    fun part1(input: List<String>): String {
+        val programList = input.map {it.split(" \\(\\d+\\) -> | \\(\\d+\\)".toRegex())}.toMutableList()
+        val carrierProgramSet = emptySet<String>().toMutableSet()
+        val carriedProgramSet = emptySet<String>().toMutableSet()
 
-        while (maxElement > 0) {
-            if (index >= banks.size - 1) {
-                index = 0
-            } else {
-                index++
+        programList.forEach { stringList ->
+            if (stringList.size != 1) {
+                carrierProgramSet.add(stringList[0])
+                carriedProgramSet.addAll(stringList[1].split(", "))
             }
-            banks[index]++
-            maxElement--
         }
 
+        return (carrierProgramSet subtract carriedProgramSet).toString().removeSurrounding("[", "]")
     }
 
-    fun part1(input: List<String>): Int {
-        val banks = (input[0].split("\t")).map {it.toInt()}.toMutableList()
-        val bankMemory = emptySet<List<Int>>().toMutableSet()
-        var cycles = 0
+    data class Program(val name: String, val weight: Int) {
+        val carrying: MutableList<Program> = emptyList<Program>().toMutableList()
 
-        bankMemory.add(banks.map {it})
-        while (cycles == bankMemory.size - 1) {
-            redistribute(banks)
-            bankMemory.add(banks.map {it})
+        fun getTotalWeight(): Int {
+            var totalWeight = 0
 
-            cycles++
+            carrying.forEach {childProgram ->
+                totalWeight += if (childProgram.carrying.isEmpty()) {
+                    childProgram.weight
+                } else {
+                    childProgram.getTotalWeight()
+                }
+            }
+            return totalWeight + this.weight
+        }
+    }
+
+    fun findUnbalancedCorrectedWeight(baseProgram: Program, previousMode: Int): Int {
+        val childProgramList = baseProgram.carrying
+        val childProgramTotalWeights = baseProgram.carrying.map { it.getTotalWeight() }
+        val childMap = childProgramList.associateWith { it.getTotalWeight() }
+        val (mode, _) = childProgramTotalWeights.groupingBy { it }.eachCount().maxByOrNull { it.value }!!
+        var newWeight = 0
+
+        childMap.map {
+            if (it.value != mode) {
+                newWeight = findUnbalancedCorrectedWeight(it.key, mode)
+                return newWeight
+            }
         }
 
-        return cycles
+        return previousMode - (baseProgram.getTotalWeight() - baseProgram.weight)
     }
-
 
     fun part2(input: List<String>): Int {
-        val banks = (input[0].split("\t")).map {it.toInt()}.toMutableList()
-        val bankMemory = emptySet<List<Int>>().toMutableSet()
-        var cycles = 0
+        val programStringList = input.map { it.split(" ", ", ") }.toMutableList()
 
-        bankMemory.add(banks.map {it})
-        while (cycles == bankMemory.size - 1) {
-            redistribute(banks)
-            bankMemory.add(banks.map {it})
+        val programList = programStringList.map() {
+            Program(it[0], it[1].removeSurrounding("(", ")").toInt())
+        }.toMutableList()
 
-            cycles++
+        programStringList.forEachIndexed() { index, stringList ->
+            if (stringList.size > 2) {
+                for (i in 3 until stringList.size) {
+                    programList[index].carrying.add(programList.find { it.name == stringList[i] }!!)
+                }
+            }
         }
 
-        val identicalBankIndex = bankMemory.indexOf(banks.map {it})
+        val baseProgramName = part1(input)
+        val baseProgram = programList.find { it.name == baseProgramName }
 
-        return cycles - identicalBankIndex
+        return findUnbalancedCorrectedWeight(baseProgram!!, baseProgram.weight)
     }
 
-
-
-
-
-    val input = readInput("Day06_test")
+    val input = readInput("Day07_test")
     part1(input).println()
     part2(input).println()
 }
+
